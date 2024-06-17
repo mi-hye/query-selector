@@ -11,6 +11,30 @@ function parseSelector(selector) {
 	return ["nodeName", selector.toUpperCase()];
 }
 
+function findAllTarget(
+	$parent,
+	identifier,
+	targetStr,
+	targetNodes = []
+) {
+	if ($parent[identifier] === targetStr) {
+		targetNodes.push($parent);
+		return targetNodes;
+	}
+
+	if ($parent.children.length > 0) {
+		for (let i = 0; i < $parent.children.length; i++) {
+			targetNodes = findAllTarget(
+				$parent.children[i],
+				identifier,
+				targetStr,
+				targetNodes
+			);
+		}
+	}
+	return targetNodes;
+}
+
 function findTargetByDFS($parent, identifier, targetStr) {
 	let targetNode = null;
 	if ($parent[identifier] === targetStr) return $parent;
@@ -44,22 +68,28 @@ function findTargetByBFS($current, identifier, targetStr) {
 	return targetNode;
 }
 
-function findTargetByBFS2($current, identifier, targetStr) {
-	let targetNode = null;
-
-		if(!$current.nextElementSibling)
-		findTargetByBFS($current.children[0], identifier, targetStr)
-
-	return targetNode;
-}
-
 const Selector = {
 	querySelector(selector) {
 		const [identifier, targetStr] = parseSelector(selector);
-		return findTargetByBFS($root, identifier, targetStr);
-		// return findTargetByDFS($root, identifier, targetStr);
+		console.time("result");
+		// const result = findTargetByBFS(
+		// 	$root,
+		// 	identifier,
+		// 	targetStr
+		// );
+
+		const result = findTargetByDFS(
+			$root,
+			identifier,
+			targetStr
+		);
+		console.timeEnd("result");
+		return result;
 	},
-	querySelectorAll(selector) {},
+	querySelectorAll(selector) {
+		const [identifier, targetStr] = parseSelector(selector);
+		return findAllTarget($root, identifier, targetStr);
+	},
 };
 
 export default Selector;
